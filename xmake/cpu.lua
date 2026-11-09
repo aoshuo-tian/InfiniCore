@@ -41,6 +41,11 @@ target("infinirt-cpu")
 target_end()
 
 if has_config("omp") then
-    add_requires("openmp")
-    add_packages("openmp")
+    if os.getenv("H3_REVIEW_VENDOR_HEADERS") then
+        add_includedirs(path.join(os.projectdir(), "../../tooling/openmp/include"))
+        add_ldflags("-fopenmp")
+    else
+        add_requires("openmp")
+        add_packages("openmp")
+    end
 end

@@ -1,6 +1,12 @@
 add_rules("mode.debug", "mode.release")
-add_requires("boost", {configs = {stacktrace = true}})
-add_requires("pybind11")
+if not os.getenv("H3_REVIEW_VENDOR_HEADERS") then
+    add_requires("boost", {configs = {stacktrace = true}})
+end
+if os.getenv("H3_REVIEW_VENDOR_HEADERS") then
+    add_includedirs(path.join(os.projectdir(), "../../tooling/pybind11/include"), {system = true})
+else
+    add_requires("pybind11")
+end
 
 -- Define color codes
 local GREEN = '\27[0;32m'
@@ -254,8 +260,156 @@ option("ninetoothed")
     set_description("Whether to complie NineToothed implementations")
 option_end()
 
+option("ninetoothed-flash-attention-only")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable only the NineToothed FlashAttention dispatch")
+option_end()
+
+if has_config("ninetoothed-flash-attention-only") and not has_config("ninetoothed") then
+    raise("ninetoothed-flash-attention-only requires --ninetoothed=y")
+end
+
 if has_config("ninetoothed") then
-    add_defines("ENABLE_NINETOOTHED")
+    if has_config("ninetoothed-flash-attention-only") then
+        add_defines("ENABLE_NINETOOTHED_FLASH_ATTENTION")
+    else
+        add_defines("ENABLE_NINETOOTHED")
+    end
+end
+
+
+option("ninetoothed-hygon-tile64")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Use generated NineToothed M64N64 noncausal Hygon attention")
+option_end()
+
+if has_config("ninetoothed-hygon-tile64") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        raise("ninetoothed-hygon-tile64 requires --ninetoothed=y --hygon-dcu=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_HYGON_TILE64", "ENABLE_NINETOOTHED_FLASH_ATTENTION")
+end
+
+
+option("ninetoothed-hygon-mha-profiles")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Use two generated NineToothed Hygon MHA profiles")
+option_end()
+
+if has_config("ninetoothed-hygon-mha-profiles") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        raise("ninetoothed-hygon-mha-profiles requires --ninetoothed=y --hygon-dcu=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_HYGON_MHA_PROFILES", "ENABLE_NINETOOTHED_FLASH_ATTENTION")
+end
+
+
+option("ninetoothed-hygon-mha-large")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Use guarded long-sequence NineToothed Hygon D128 kernels")
+option_end()
+
+if has_config("ninetoothed-hygon-mha-large") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        raise("ninetoothed-hygon-mha-large requires --ninetoothed=y --hygon-dcu=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_HYGON_MHA_LARGE", "ENABLE_NINETOOTHED_HYGON_MHA_PROFILES", "ENABLE_NINETOOTHED_FLASH_ATTENTION")
+end
+
+option("ninetoothed-hygon-mha-inner32")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Use guarded H3 long attention with unit feature strides and int32 addressing")
+option_end()
+if has_config("ninetoothed-hygon-mha-inner32") then
+    if not has_config("ninetoothed-hygon-mha-large") then
+        raise("ninetoothed-hygon-mha-inner32 requires --ninetoothed-hygon-mha-large=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_HYGON_MHA_INNER32")
+end
+
+option("ninetoothed-hygon-mha-head56")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Use measured H3 B1/H56 self-attention profile for S1024..2047")
+option_end()
+
+if has_config("ninetoothed-hygon-mha-head56") then
+    if not has_config("ninetoothed-hygon-mha-large") then
+        raise("ninetoothed-hygon-mha-head56 requires --ninetoothed-hygon-mha-large=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_HYGON_MHA_HEAD56")
+end
+
+option("ninetoothed-hygon-gated-residual")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable guarded NineToothed Hygon gated residual fusion")
+option_end()
+
+option("ninetoothed-hygon-projection-swiglu")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Fuse H3 up/gate projection and SwiGLU with NineToothed")
+option_end()
+
+option("ninetoothed-hygon-adaln")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable guarded FP16/BF16 NineToothed Hygon AdaLN fusion")
+option_end()
+if has_config("ninetoothed-hygon-adaln") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        assert(false, "ninetoothed-hygon-adaln requires --ninetoothed=y --hygon-dcu=y")
+    end
+    if get_config("hygon-arch") and get_config("hygon-arch") ~= "gfx936" then
+        assert(false, "ninetoothed-hygon-adaln currently requires gfx936")
+    end
+end
+
+option("ninetoothed-hygon-embedding")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable generated Hygon embedding")
+option_end()
+if has_config("ninetoothed-hygon-embedding") and (not has_config("ninetoothed") or not has_config("hygon-dcu")) then
+    assert(false, "ninetoothed-hygon-embedding requires --ninetoothed=y --hygon-dcu=y")
+end
+
+option("ninetoothed-hygon-swiglu-fp32")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable generated Hygon swiglu-fp32")
+option_end()
+if has_config("ninetoothed-hygon-swiglu-fp32") and (not has_config("ninetoothed") or not has_config("hygon-dcu")) then
+    assert(false, "ninetoothed-hygon-swiglu-fp32 requires --ninetoothed=y --hygon-dcu=y")
+end
+
+option("ninetoothed-cast")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable the NineToothed HYGON F16/BF16/F32 cast backend")
+option_end()
+
+if has_config("ninetoothed-cast") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        raise("ninetoothed-cast requires --ninetoothed=y --hygon-dcu=y")
+    end
+    add_defines("ENABLE_NINETOOTHED_CAST")
+end
+
+-- Each generated backend must work without enabling an unrelated operator.
+if has_config("ninetoothed-cast")
+    or has_config("ninetoothed-hygon-tile64")
+    or has_config("ninetoothed-hygon-mha-profiles")
+    or has_config("ninetoothed-hygon-mha-large")
+    or has_config("ninetoothed-hygon-embedding")
+    or has_config("ninetoothed-hygon-swiglu-fp32") then
+    add_includedirs("build/ninetoothed")
 end
 
 -- Flash-Attn
@@ -591,6 +745,14 @@ target("infinirt")
 target_end()
 
 target("infiniop")
+    -- These switches affect only host-side operator dispatch, not native device objects.
+    if has_config("ninetoothed-hygon-embedding") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_EMBEDDING")
+    end
+    if has_config("ninetoothed-hygon-swiglu-fp32") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_SWIGLU_FP32")
+    end
+
     set_kind("shared")
     add_deps("infinirt")
 
@@ -720,7 +882,135 @@ target("infinicore_c_api")
     after_build(function (target) print(YELLOW .. "[Congratulations!] Now you can install the libraries with \"xmake install\"" .. NC) end)
 target_end()
 
+if has_config("ninetoothed-hygon-adaln") then
+    target("ninetoothed-hygon-adaln-aot")
+        set_kind("static")
+        set_default(false)
+        set_languages("cxx17")
+        set_toolchains("hygon.toolchain")
+        add_defines("__HIP_PLATFORM_AMD__")
+        add_includedirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "include"))
+        add_cxxflags("-fPIC", "-Wno-error=deprecated-declarations", {force = true})
+        add_files("build/ninetoothed-adaln/h3_adaln_*.cpp")
+        add_linkdirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "lib"),
+                     path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "hip", "lib"), {public = true})
+        add_links("amdhip64", {public = true})
+        before_build(function (target)
+            assert(os.isfile("build/ninetoothed-adaln/h3_adaln_f16_1024.h")
+                   and os.isfile("build/ninetoothed-adaln/h3_adaln_bf16_1024.h"),
+                   "Generate AdaLN AOT inputs with src/infinicore/ops/adaln/ninetoothed/generate_hygon.py first")
+        end)
+    target_end()
+end
+
+if has_config("ninetoothed-hygon-projection-swiglu") then
+    target("ninetoothed-hygon-projection-swiglu-aot")
+        on_load(function (target)
+            import("core.project.config")
+            assert(config.get("ninetoothed") and config.get("hygon-dcu"),
+                   "projection-swiglu requires NineToothed and Hygon")
+            assert(config.get("hygon-arch") == "gfx936",
+                   "projection-swiglu AOT currently requires explicit --hygon-arch=gfx936")
+        end)
+        set_kind("static")
+        set_default(false)
+        set_languages("cxx17")
+        set_toolchains("hygon.toolchain")
+        add_defines("__HIP_PLATFORM_AMD__")
+        add_includedirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "include"))
+        add_cxxflags("-fPIC", "-Wno-error=deprecated-declarations", {force=true})
+        add_files("build/ninetoothed-projection-swiglu/h3_proj_swiglu_*.cpp")
+        add_linkdirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "lib"), {public=true})
+        add_links("amdhip64", {public=true})
+        before_build(function (target)
+            for _, dtype in ipairs({"f16", "bf16"}) do
+                for _, tile in ipairs({"m16n32k32", "m32n64k32", "m128n64k64"}) do
+                    assert(os.isfile("build/ninetoothed-projection-swiglu/h3_proj_swiglu_" .. dtype .. "_" .. tile .. ".h"),
+                           "Generate projection SwiGLU AOT inputs first")
+                end
+            end
+        end)
+    target_end()
+end
+
+if has_config("ninetoothed-hygon-gated-residual") then
+    target("ninetoothed-hygon-gated-residual-aot")
+        on_load(function (target)
+            import("core.project.config")
+            assert(config.get("ninetoothed") and config.get("hygon-dcu"),
+                   "gated residual requires NineToothed and Hygon")
+            assert(config.get("hygon-arch") == "gfx936", "gated residual requires gfx936")
+        end)
+        set_kind("static")
+        set_default(false)
+        set_languages("cxx17")
+        set_toolchains("hygon.toolchain")
+        add_defines("__HIP_PLATFORM_AMD__")
+        add_includedirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "include"))
+        add_cxxflags("-fPIC", "-Wno-error=deprecated-declarations", {force=true})
+        add_files("build/ninetoothed-gated-residual/h3_gate_*.cpp")
+        add_linkdirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "lib"),
+                     path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "hip", "lib"), {public=true})
+        add_links("amdhip64", {public=true})
+        before_build(function (target)
+            assert(os.isfile("build/ninetoothed-gated-residual/h3_gate_f16_1024.h")
+                and os.isfile("build/ninetoothed-gated-residual/h3_gate_bf16_1024.h"),
+                "Generate gated residual AOT sources first")
+        end)
+    target_end()
+end
+
+
+option("ninetoothed-hygon-dist")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable generated NineToothed Hygon Dist")
+option_end()
+if has_config("ninetoothed-hygon-dist") then
+    if not has_config("ninetoothed") or not has_config("hygon-dcu") then
+        raise("Dist requires ninetoothed and hygon-dcu")
+    end
+    if get_config("hygon-arch")~="gfx936" then
+        raise("Dist currently targets gfx936")
+    end
+    target("ninetoothed-hygon-dist-aot")
+        set_kind("static")
+        set_default(false)
+        set_languages("cxx17")
+        set_toolchains("hygon.toolchain")
+        add_defines("__HIP_PLATFORM_AMD__")
+        add_includedirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "include"))
+        add_cxxflags("-fPIC", "-Wno-error=deprecated-declarations", {force=true})
+        add_files("build/ninetoothed-dist/h3_dist_*.cpp")
+        add_linkdirs(path.join(os.getenv("DTK_ROOT") or "/opt/dtk", "lib"), {public=true})
+        add_links("amdhip64", {public=true})
+        before_build(function (target)
+            assert(os.isfile("build/ninetoothed-dist/h3_dist_f16.h") and os.isfile("build/ninetoothed-dist/h3_dist_bf16.h") and os.isfile("build/ninetoothed-dist/h3_dist_f32.h"), "Generate Dist AOT sources first")
+        end)
+    target_end()
+end
+
 target("infinicore_cpp_api")
+    if has_config("ninetoothed-hygon-dist") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_DIST")
+        add_includedirs("build/ninetoothed-dist")
+        add_deps("ninetoothed-hygon-dist-aot")
+    end
+    if has_config("ninetoothed-hygon-gated-residual") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_GATED_RESIDUAL")
+        add_includedirs("build/ninetoothed-gated-residual")
+        add_deps("ninetoothed-hygon-gated-residual-aot")
+    end
+    if has_config("ninetoothed-hygon-projection-swiglu") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_PROJECTION_SWIGLU")
+        add_includedirs("build/ninetoothed-projection-swiglu")
+        add_deps("ninetoothed-hygon-projection-swiglu-aot")
+    end
+    if has_config("ninetoothed-hygon-adaln") then
+        add_defines("ENABLE_NINETOOTHED_HYGON_ADALN")
+        add_includedirs("build/ninetoothed-adaln")
+        add_deps("ninetoothed-hygon-adaln-aot")
+    end
     set_kind("shared")
     add_deps("infiniop", "infinirt", "infiniccl")
     set_languages("cxx17")
@@ -855,7 +1145,7 @@ target("infinicore_cpp_api")
     -- pybind11/embed.h for mha_kvcache branch
     if has_config("moore-gpu") and has_config("aten") and has_config("flash-attn") then
         add_defines("ENABLE_MOORE_MATE_FLASH_ATTN")
-        add_packages("pybind11")
+        if not os.getenv("H3_REVIEW_VENDOR_HEADERS") then add_packages("pybind11") end
     end
 
     before_build(function (target)
@@ -1086,7 +1376,13 @@ target("_infinicore")
 
     set_default(false)
     add_rules("python.library", {soabi = true})
-    add_packages("pybind11")
+    if os.getenv("H3_REVIEW_VENDOR_HEADERS") then
+        add_includedirs(os.getenv("H3_REVIEW_PYTHON_INCLUDE"), {system = true})
+        add_linkdirs(os.getenv("H3_REVIEW_PYTHON_LIBDIR"))
+        add_links(os.getenv("H3_REVIEW_PYTHON_LINK"))
+    else
+        add_packages("pybind11")
+    end
     set_languages("cxx17")
 
     add_deps("infinicore_cpp_api")

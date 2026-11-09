@@ -15,6 +15,8 @@ BUILD_DIRECTORY_PATH = (
 
 
 def build(premake, constexpr_param_grid, caller, op_name, output_dir):
+    output_dir = pathlib.Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     headers = []
     all_param_names = []
     combinations = []
@@ -82,8 +84,8 @@ def build(premake, constexpr_param_grid, caller, op_name, output_dir):
     header_content = f"""#include "{_HEADER_PATH}"
 \n{op_decl}\n"""
 
-    (BUILD_DIRECTORY_PATH / source_file_name).write_text(source_content)
-    (BUILD_DIRECTORY_PATH / header_file_name).write_text(header_content)
+    (output_dir / source_file_name).write_text(source_content)
+    (output_dir / header_file_name).write_text(header_content)
 
 
 def _make(premake, combination, caller, op_name, output_dir):

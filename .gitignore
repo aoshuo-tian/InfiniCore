@@ -32,3 +32,17 @@ cache/
 *.gz
 *.zip
 *.tar
+
+# Reviewed H3 delivery metadata and build-support sources
+!h3_submission/**
+!build/
+build/*
+!build/ninetoothed*/
+!build/ninetoothed*/**
+
+# Never publish interpreter caches or compiled host libraries.
+__pycache__/
+*.pyc
+*.o
+*.a
+*.so

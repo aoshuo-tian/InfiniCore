@@ -1,0 +1,9 @@
+#include "../../../../dependencies/abi/ninetoothed.h"
+
+extern "C" NineToothedResult launch_h3_embedding_rows_1024_bf16_i32_divisibility_1_16_1_1_16_contiguity_0_1_1_0_1_size_i32_stride_i32(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_56, NineToothedTensor ninetoothed_tensor_57, NineToothedTensor ninetoothed_tensor_58);
+
+extern "C" NineToothedResult launch_h3_embedding_rows_1024_bf16_i32(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_56, NineToothedTensor ninetoothed_tensor_57, NineToothedTensor ninetoothed_tensor_58) {
+    if (ninetoothed_tensor_56.shape[0] > 2147483647ULL || ninetoothed_tensor_56.strides[0] > 2147483647LL || ninetoothed_tensor_56.strides[0] < -2147483648LL || ninetoothed_tensor_56.shape[1] > 2147483647ULL || ninetoothed_tensor_56.strides[1] > 2147483647LL || ninetoothed_tensor_56.strides[1] < -2147483648LL || ninetoothed_tensor_57.shape[0] > 2147483647ULL || ninetoothed_tensor_57.strides[0] > 2147483647LL || ninetoothed_tensor_57.strides[0] < -2147483648LL || ninetoothed_tensor_58.shape[0] > 2147483647ULL || ninetoothed_tensor_58.strides[0] > 2147483647LL || ninetoothed_tensor_58.strides[0] < -2147483648LL || ninetoothed_tensor_58.shape[1] > 2147483647ULL || ninetoothed_tensor_58.strides[1] > 2147483647LL || ninetoothed_tensor_58.strides[1] < -2147483648LL) return (NineToothedResult)1;
+    if (ninetoothed_tensor_56.shape[1] % 16 == 0 && ninetoothed_tensor_58.shape[1] % 16 == 0 && ninetoothed_tensor_56.strides[1] == 1 && ninetoothed_tensor_57.strides[0] == 1 && ninetoothed_tensor_58.strides[1] == 1) return launch_h3_embedding_rows_1024_bf16_i32_divisibility_1_16_1_1_16_contiguity_0_1_1_0_1_size_i32_stride_i32(stream, ninetoothed_tensor_56, ninetoothed_tensor_57, ninetoothed_tensor_58);
+    return (NineToothedResult)1;
+}

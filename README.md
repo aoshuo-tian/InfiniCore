@@ -385,3 +385,8 @@ infiniccl-test --nvidia
 ## 如何开源贡献
 
 见 [`InfiniCore开发者手册`](DEV.md)。
+
+
+## MiniMax-H3 delivery
+
+See [H3_SUBMISSION.md](H3_SUBMISSION.md) for the selected gfx936 sources, matching repositories, tested TP8 profile, and validation limits.

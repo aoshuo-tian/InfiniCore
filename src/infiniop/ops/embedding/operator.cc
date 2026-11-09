@@ -2,6 +2,10 @@
 #include "../../handle.h"
 #include "infiniop/ops/embedding.h"
 
+#ifdef ENABLE_NINETOOTHED_HYGON_EMBEDDING
+#include "ninetoothed/hygon_embedding.h"
+#endif
+
 #ifdef ENABLE_CAMBRICON_API
 #include "bang/embedding_bang.h"
 #endif
@@ -59,7 +63,11 @@ __INFINI_C infiniStatus_t infiniopCreateEmbeddingDescriptor(
         CREATE(INFINI_DEVICE_QY, nvidia);
 #endif
 #ifdef ENABLE_HYGON_API
+#ifdef ENABLE_NINETOOTHED_HYGON_EMBEDDING
+        CREATE(INFINI_DEVICE_HYGON, hygon_ninetoothed);
+#else
         CREATE(INFINI_DEVICE_HYGON, nvidia);
+#endif
 #endif
 #ifdef ENABLE_ASCEND_API
         CREATE(INFINI_DEVICE_ASCEND, ascend);
@@ -114,7 +122,11 @@ __INFINI_C infiniStatus_t infiniopEmbedding(
         CALCULATE(INFINI_DEVICE_QY, nvidia);
 #endif
 #ifdef ENABLE_HYGON_API
+#ifdef ENABLE_NINETOOTHED_HYGON_EMBEDDING
+        CALCULATE(INFINI_DEVICE_HYGON, hygon_ninetoothed);
+#else
         CALCULATE(INFINI_DEVICE_HYGON, nvidia);
+#endif
 #endif
 #ifdef ENABLE_ASCEND_API
         CALCULATE(INFINI_DEVICE_ASCEND, ascend);
@@ -163,7 +175,11 @@ __INFINI_C infiniStatus_t infiniopDestroyEmbeddingDescriptor(infiniopEmbeddingDe
         DESTROY(INFINI_DEVICE_QY, nvidia);
 #endif
 #ifdef ENABLE_HYGON_API
+#ifdef ENABLE_NINETOOTHED_HYGON_EMBEDDING
+        DESTROY(INFINI_DEVICE_HYGON, hygon_ninetoothed);
+#else
         DESTROY(INFINI_DEVICE_HYGON, nvidia);
+#endif
 #endif
 #ifdef ENABLE_METAX_API
         DESTROY(INFINI_DEVICE_METAX, metax);

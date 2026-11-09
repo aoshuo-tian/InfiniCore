@@ -1,0 +1,12 @@
+#ifndef NINETOOTHED_H3_PROFILE_D72_BF16_LONG_H
+#define NINETOOTHED_H3_PROFILE_D72_BF16_LONG_H
+
+#include "../../../../dependencies/abi/ninetoothed.h"
+
+#ifdef __cplusplus
+extern "C" NineToothedResult launch_h3_profile_d72_bf16_long(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_448, NineToothedTensor ninetoothed_tensor_449, NineToothedTensor ninetoothed_tensor_450, NineToothedTensor ninetoothed_tensor_453, NineToothedTensor ninetoothed_tensor_451, NineToothedTensor ninetoothed_tensor_459, NineToothedTensor ninetoothed_tensor_458, NineToothedTensor ninetoothed_tensor_452, NineToothedTensor ninetoothed_tensor_460, NineToothedTensor ninetoothed_tensor_461);
+#else
+NineToothedResult launch_h3_profile_d72_bf16_long(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_448, NineToothedTensor ninetoothed_tensor_449, NineToothedTensor ninetoothed_tensor_450, NineToothedTensor ninetoothed_tensor_453, NineToothedTensor ninetoothed_tensor_451, NineToothedTensor ninetoothed_tensor_459, NineToothedTensor ninetoothed_tensor_458, NineToothedTensor ninetoothed_tensor_452, NineToothedTensor ninetoothed_tensor_460, NineToothedTensor ninetoothed_tensor_461);
+#endif
+
+#endif

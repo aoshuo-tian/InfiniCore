@@ -94,6 +94,15 @@ infiniStatus_t Descriptor::create(
     CHECK_OR_RETURN(weight_dtype == INFINI_DTYPE_F32 || weight_dtype == INFINI_DTYPE_F16 || weight_dtype == INFINI_DTYPE_BF16, INFINI_STATUS_BAD_TENSOR_DTYPE);
     CHECK_OR_RETURN(output_desc->dtype() == weight_dtype, INFINI_STATUS_BAD_TENSOR_DTYPE);
 
+    // The Hygon kernel below uses packed addressing for all three tensors.
+    // Reject unsupported layouts before a descriptor can be cached or launched.
+    if (handle->device == INFINI_DEVICE_HYGON) {
+        CHECK_OR_RETURN(output_desc->isContiguous()
+                            && input_desc->isContiguous()
+                            && weight_desc->isContiguous(),
+                        INFINI_STATUS_BAD_TENSOR_STRIDES);
+    }
+
     // Calculate number of indices (supporting batch dimension)
     size_t num_indices = 1;
     for (auto dim : input_shape) {

@@ -30,6 +30,7 @@ local function add_hygon_dtk_paths(attrs)
     end
 
     local include_dirs = {
+        path.join(os.projectdir(), "../../tooling/cccl-2.4.0/thrust"),
         path.join(dtk_root, "include"),
         path.join(dtk_root, "cuda", "include"),
     }
@@ -156,7 +157,19 @@ target("infiniop-hygon")
     remove_files("../src/infiniop/ops/histc/nvidia/*.cu")
     remove_files("../src/infiniop/ops/quant/per_tensor_quant_int8/nvidia/*.cu")
     if has_config("ninetoothed") then
-        add_files("../build/ninetoothed/*.c", "../build/ninetoothed/*.cpp", {cxxflags = {"-Wno-return-type"}})
+        add_files("../build/ninetoothed/*.c")
+        -- NineToothed HIP AOT wrappers contain host-side runtime calls.
+        add_files("../build/ninetoothed/*.cpp", {
+            defines = {"__HIP_PLATFORM_AMD__"},
+            cxxflags = {
+                "-Wno-return-type",
+                "-Wno-error=deprecated-declarations",
+                "-Wno-error=unused-variable"
+            }
+        })
+        add_linkdirs(path.join(dtk_root, "lib"),
+                     path.join(dtk_root, "hip", "lib"), {public = true})
+        add_links("amdhip64", {public = true})
     end
 target_end()
 

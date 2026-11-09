@@ -36,8 +36,20 @@ def arrangement(
     block_size_m=None,
     block_size_n=None,
 ):
+    # D=72: retain logical bounds and zero-fill the padded compute tile.
+    block_size_d = -1
+    if (
+        not with_kv_cache
+        and isinstance(query.shape[-1], int)
+        and query.shape[-1] == 72
+    ):
+        block_size_d = 128
+        query.other = 0
+        key.other = 0
+        value.other = 0
+
     def arrange_query_or_output(input):
-        arranged = input.tile((1, 1, block_size_m, -1)).tile(
+        arranged = input.tile((1, 1, block_size_m, block_size_d)).tile(
             (1, query.shape[-3] // key.shape[-3], 1, 1)
         )
         arranged.dtype = arranged.dtype.squeeze((0, 2, 3))
@@ -47,7 +59,7 @@ def arrangement(
 
     def arrange_key_or_value(input):
         arranged = (
-            input.tile((1, 1, block_size_n, -1))
+            input.tile((1, 1, block_size_n, block_size_d))
             .tile((1, 1, -1, -1))
             .expand((-1, -1, query_arranged.shape[-2], -1))
         )
@@ -177,13 +189,13 @@ def application_without_kv_cache(
     actual_kv_len = total_kv_len[0]
 
     for i in range(query.shape[0]):
-        query_i = (1.4426950408889634 * scale * query[i]).to(query[i].dtype)
+        query_i = (1.4426950408889634 * scale.to(ntl.float32) * query[i].to(ntl.float32)).to(query[i].dtype)
 
         acc = ntl.zeros((query_i.shape[-2], query_i.shape[-1]), dtype=ntl.float32)
         lse = ntl.full((query_i.shape[-2],), 1, dtype=ntl.float32)
         max = ntl.full((query_i.shape[-2],), float("-inf"), dtype=ntl.float32)
 
-        for j in range(-(-actual_kv_len // key.dtype.shape[0])):
+        for j in range((actual_kv_len + key.dtype.shape[0] - 1) // key.dtype.shape[0]):
             qk = ntl.dot(query_i, ntl.trans(key[j]))
 
             key_pos = key[j].offsets(-2)

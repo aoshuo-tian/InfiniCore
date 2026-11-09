@@ -1,0 +1,12 @@
+#ifndef NINETOOTHED_H3_CAST_DENSE_BF16_F32_H
+#define NINETOOTHED_H3_CAST_DENSE_BF16_F32_H
+
+#include "../../../../dependencies/abi/ninetoothed.h"
+
+#ifdef __cplusplus
+extern "C" NineToothedResult launch_h3_cast_dense_bf16_f32(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_78, NineToothedTensor ninetoothed_tensor_79);
+#else
+NineToothedResult launch_h3_cast_dense_bf16_f32(NineToothedStream stream, NineToothedTensor ninetoothed_tensor_78, NineToothedTensor ninetoothed_tensor_79);
+#endif
+
+#endif

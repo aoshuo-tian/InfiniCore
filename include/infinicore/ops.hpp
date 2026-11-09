@@ -2,6 +2,8 @@
 
 #include "ops/adaptive_max_pool1d.hpp"
 #include "ops/add.hpp"
+#include "ops/adaln.hpp"
+#include "ops/gated_residual.hpp"
 #include "ops/add_rms_norm.hpp"
 #include "ops/addcmul.hpp"
 #include "ops/asin.hpp"
@@ -115,3 +117,5 @@
 #include "ops/w4a8_group_gemm.hpp"
 #include "ops/w8a8_group_gemm.hpp"
 #endif
+
+#include "ops/projection_swiglu.hpp"

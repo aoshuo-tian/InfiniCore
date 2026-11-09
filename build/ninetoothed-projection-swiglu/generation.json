@@ -1,0 +1,22 @@
+{
+  "target": "GPUTarget(backend='hip', arch='gfx936', warp_size=64)",
+  "records": [
+    {
+      "name": "h3_proj_swiglu_f16_m16n32k32",
+      "seconds": 18.707447397056967
+    },
+    {
+      "name": "h3_proj_swiglu_f16_m32n64k32",
+      "seconds": 18.6586997481063
+    },
+    {
+      "name": "h3_proj_swiglu_bf16_m16n32k32",
+      "seconds": 18.6012471630238
+    },
+    {
+      "name": "h3_proj_swiglu_bf16_m32n64k32",
+      "seconds": 18.684160763863474
+    }
+  ],
+  "fp_fusion": false
+}

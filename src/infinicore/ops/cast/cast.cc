@@ -8,6 +8,10 @@
 #include <memory>
 #include <stdexcept>
 
+#if defined(ENABLE_HYGON_API) && defined(ENABLE_NINETOOTHED_CAST)
+#include "cast_ninetoothed_hygon.hpp"
+#endif
+
 #if defined(ENABLE_ATEN)
 #include "infinicore/adaptor/aten_adaptor.hpp"
 #endif
@@ -36,6 +40,12 @@ void record_or_run(std::function<void()> runner) {
 }
 
 void run_cast(Tensor out, const Tensor &in) {
+#if defined(ENABLE_HYGON_API) && defined(ENABLE_NINETOOTHED_CAST)
+    if (out->device().getType() == Device::Type::HYGON) {
+        cast_impl::ninetoothed_hygon(out, in);
+        return;
+    }
+#endif
 #if defined(ENABLE_ATEN)
     adaptor::set_aten_stream_to_infinicore();
     auto output_at = adaptor::to_aten_tensor(out);
